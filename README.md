@@ -193,6 +193,11 @@ Switch (texto/audio)
 | Mejora | Descripción | En desarrollo |
 |---|---|---|
 | Mejora prompt| Mejora del prompt de Agent AI 2 para textos muy largos que rompian el json | ✅ |
+| Búsqueda web | Integración con Tavily para consultas de información actual (1000 creditos al mes) | ✅ |
+| Fix historial Agent 2 | El historial ahora llega correctamente al prompt del Agent 2 | ✅ |
+| Fix Historial audio | Los mensajes de voz se guardan transcritos en el historial | ✅ |
+| Personalidad Otto | Tono directo, sin frases de relleno, con carácter propio | ✅ |
+| Confirmaciones | Respuestas como "sí" o "dale" crean la nota sin volver a preguntar | ✅ |
 | Modularización | Sub-workflows para Historial Manager, Vault Reader y TTS Service |  |
 | Manejo de errores | Error Trigger para fallos en Groq, Telegram o I/O de archivos | 🔜 |
 | Variables de entorno | Externalizar rutas hardcodeadas como `OBSIDIAN_VAULT_PATH` |  |
