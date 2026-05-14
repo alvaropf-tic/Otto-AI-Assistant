@@ -206,12 +206,12 @@ Switch (texto/audio)
 | Búsqueda semántica | Embeddings con ChromaDB para encontrar notas sin usar el título exacto |  |
 | Resumen diario | Schedule Trigger que envía cada mañana las tareas pendientes |  |
 | Comandos slash | `/stats`, `/search`, `/export` via `botCommand` en Telegram | 🔜 |
-| Inline Keyboard Markup | Para poner el audio en auto, no, si| 🔜 |
+| Inline Keyboard Markup | Para poner el audio en auto, no, si|  |
 | PDFs | Subir PDFs y que Otto los use como contexto para responder preguntas |  |
 | Base de datos | Migración a PostgreSQL para historial y metadatos cuando el volumen lo requiera |  |
 | Spotify | Abrir en navegador de PC personal la ventana de Spotify con música |  |
 | Gmail | Que te diga si tienes algun correo sin leer y de quien es (Prohibido que Otto coneste emails/mensajes) | 🔜 |
-| Reproduccion de audios anteriores en Telegram| Pasar de enviar con nodo "Send an audio file" a "Send a voice message" | 🔜 |
+| Reproduccion de audios anteriores en Telegram| Pasar de enviar con nodo "Send an audio file" a "Send a voice message" |  |
 | --- | --- | --- |
 | IA | Cambiar el modelo de IA (V2.0)|  |
 | BD | Cambio de base de datos, pasar de guardar en Obsidian a otro tipo de BD (V2.0) |  |
