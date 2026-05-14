@@ -1,0 +1,968 @@
+{
+  "name": "Otto V1.4",
+  "nodes": [
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {
+          "temperature": 0.5
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        640,
+        -112
+      ],
+      "id": "7529c2fd-71c9-49cb-b23c-70e564292be5",
+      "name": "Groq Chat Model"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.reply }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1824,
+        -400
+      ],
+      "id": "d3c9b8a8-1a26-436d-a206-fb43c2019f83",
+      "name": "Send a text message",
+      "webhookId": "2ed1b41a-87ea-4184-9722-741cb5986600",
+      "credentials": {
+        "telegramApi": {
+          "id": "udmiKd0N1Bb6kafA",
+          "name": "OttoAPI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ]
+      },
+      "type": "n8n-nodes-telegram-polling.telegramPollingTrigger",
+      "typeVersion": 1,
+      "position": [
+        -864,
+        -304
+      ],
+      "id": "e94e1fa7-9dbd-45ea-9303-39a38689f59b",
+      "name": "Telegram Trigger",
+      "credentials": {
+        "telegramApi": {
+          "id": "udmiKd0N1Bb6kafA",
+          "name": "OttoAPI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.reply.replace(/[_*[\\]()~`>#+=|{}.!-]/g, '') }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1712,
+        0
+      ],
+      "id": "ad1d7839-1f33-4af4-9096-76e4a044de57",
+      "name": "Send a text message1",
+      "webhookId": "96510dd7-d7dc-4cdd-a61a-28cfe04ebbdd",
+      "credentials": {
+        "telegramApi": {
+          "id": "udmiKd0N1Bb6kafA",
+          "name": "OttoAPI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=El usuario ha dicho: {{ $json.message.text }}\n\nLas carpetas disponibles son: Inbox, Proyectos, Diario, Contactos, Finanzas, Aprendizaje, Sistema_Otto\n\nNotas existentes en el vault:\n{{ $json.allTitles }}\n\nResponde SOLO con este JSON exacto:\n{\n  \"folders\": [\"carpeta1\"],\n  \"action\": \"list o read o create o edit o delete o chat\",\n  \"note_title\": \"titulo exacto de la nota o vacio\"\n}\n\nREGLAS:\n- action \"list\" → el usuario pide ver sus notas o recordatorios de una carpeta\n- action \"read\" → el usuario pide el contenido especifico de una nota o informacion sobre algo guardado\n- action \"create\" → el usuario quiere guardar algo nuevo\n- action \"edit\" → el usuario quiere modificar una nota existente\n- action \"delete\" → el usuario quiere borrar una nota\n- action \"chat\" → conversacion normal sin relacion con notas\n\n- Si el usuario pregunta sobre una persona → action: read, folders: [\"Contactos\"], note_title: nombre exacto segun notas existentes\n- Si el usuario usa terminos como \"mi madre\", \"mi novia\", \"mi padre\" → deduce quien corresponde segun el contexto y las notas existentes\n- Si el usuario usa plurales como \"mis padres\", \"mis amigos\" → incluye los nombres relevantes separados por coma, deduce segun contexto, no incluyas a todos indiscriminadamente\n- Si no puedes determinar exactamente que notas corresponden → devuelve todos los titulos de la carpeta relevante en note_title\n- folders: solo las carpetas realmente necesarias\n- note_title: nombre exacto tal como aparece en las notas existentes, vacio solo cuando action es chat o list\n\nIMPORTANTE: Devuelve SOLO el JSON, sin texto adicional, sin explicaciones, sin acentos en las claves.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -160,
+        -320
+      ],
+      "id": "573cfb0f-07b6-4589-918c-63a2139e13c6",
+      "name": "AI Agent 1"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -96
+      ],
+      "id": "b98fee52-43fa-44ef-8f82-219ab25109aa",
+      "name": "Groq Chat Model1"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"folders\": {\n      \"type\": \"array\",\n      \"items\": { \"type\": \"string\" }\n    },\n    \"action\": {\n      \"type\": \"string\",\n      \"enum\": [\"list\", \"read\", \"create\", \"edit\", \"delete\", \"chat\"]\n    },\n    \"note_title\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\"folders\", \"action\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -16,
+        -96
+      ],
+      "id": "713ae80b-7792-4548-bba2-1d4fbd0d1d5e",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst path = require('path');\nconst vaultPath = '/home/node/.n8n/obsidian';\nconst input = $input.first().json;\n\nconst foldersToSearch = input.output?.folders || input.folders || ['Inbox'];\nconst action = input.output?.action || input.action || 'chat';\nconst noteTitle = input.output?.note_title || input.note_title || '';\nconst isAudio = $('Code Titulos').item.json.isAudio || false;\n\n// Recuperar el texto del usuario desde Code Titulos\nconst userMessage = $('Code Titulos').item.json.text || \n                    $('Code Titulos').item.json.message && $('Code Titulos').item.json.message.text || '';\n\nlet context = '';\nlet allTitles = [];\n\nconst allFolders = ['Inbox', 'Proyectos', 'Diario', 'Contactos', 'Finanzas', 'Aprendizaje', 'Sistema_Otto'];\n\nfor (const folder of allFolders) {\n  try {\n    const files = fs.readdirSync(path.join(vaultPath, folder));\n    for (const file of files) {\n      if (file.endsWith('.md') && !file.includes('Index')) {\n        allTitles.push(`[${folder}] ${file.replace('.md', '')}`);\n      }\n    }\n  } catch(e) {}\n}\n\nif (action === 'read' && noteTitle && noteTitle.length > 0) {\n  const titles = noteTitle.split(',').map(t => t.trim());\n  for (const t of titles) {\n    for (const folder of allFolders) {\n      const notePath = path.join(vaultPath, folder, `${t}.md`);\n      try {\n        const content = fs.readFileSync(notePath, 'utf8');\n        context += `--- [${folder}] ${t}.md ---\\n${content}\\n\\n`;\n        break;\n      } catch(e) {}\n    }\n  }\n  context = context || `No se encontraron las notas: ${noteTitle}`;\n\n} else if (action === 'list') {\n  for (const folder of foldersToSearch) {\n    const folderPath = path.join(vaultPath, folder);\n    try {\n      const files = fs.readdirSync(folderPath);\n      const notes = files\n        .filter(f => f.endsWith('.md') && !f.includes('Index'))\n        .map(f => f.replace('.md', ''));\n      if (notes.length > 0) {\n        context += `[${folder}]: ${notes.join(', ')}\\n`;\n      }\n    } catch(e) {}\n  }\n  context = context || 'No hay notas en esas carpetas.';\n\n} else if (action === 'edit' && noteTitle && noteTitle.length > 0) {\n  for (const folder of allFolders) {\n    const notePath = path.join(vaultPath, folder, `${noteTitle}.md`);\n    try {\n      const content = fs.readFileSync(notePath, 'utf8');\n      context = `--- [${folder}] ${noteTitle}.md ---\\n${content}`;\n      break;\n    } catch(e) {}\n  }\n  context = context || `No se encontro la nota \"${noteTitle}\".`;\n\n} else if (action === 'delete' && noteTitle && noteTitle.length > 0) {\n  context = `Nota a eliminar: ${noteTitle}`;\n\n} else {\n  context = 'Sin notas relevantes para esta accion.';\n}\n\nreturn [{\n  json: {\n    ...input,\n    context,\n    allTitles: allTitles.join('\\n'),\n    action,\n    isAudio,\n    message: input.message,\n    userMessage\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        -320
+      ],
+      "id": "c5f2bfc8-816b-41af-bfd6-71a6fa928406",
+      "name": "Code Lectura Carpetas"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\nlet data;\ntry {\n  data = JSON.parse(input.output);\n} catch(e) {\n  try {\n    const cleaned = input.output\n      .replace(/[\\u0000-\\u001F\\u007F-\\u009F]/g, ' ')\n      .replace(/```json|```/g, '')\n      .trim();\n    data = JSON.parse(cleaned);\n  } catch(e2) {\n    data = { reply: input.output, is_note: false, action: 'none' };\n  }\n}\n\nconst is_note = data.is_note === true;\nconst reply = (data.reply || 'Listo!').replace(/\\\\n/g, '\\n');\n\nreturn [{\n  json: {\n    title: data.title || 'Nota sin titulo',\n    body: data.body || '',\n    tags: data.tags || [],\n    folder: data.folder || 'Inbox',\n    is_note: is_note,\n    action: data.action || 'none',\n    reply: reply,\n    message: $('Telegram Trigger').item.json.message,\n    isAudio: $('Code Lee Historial').item.json.isAudio || false\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        992,
+        -320
+      ],
+      "id": "4bfaa1ea-eb68-4e0f-aafd-b089bb196af0",
+      "name": "Code parsear JSON"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Eres Otto, un asistente personal inteligente y cercano.\n\nEl usuario te ha enviado: {{ $json.userMessage }}\n\nContexto relevante:\n{{ $json.context }}\n\nNotas existentes en el vault:\n{{ $json.allTitles }}\n\nCARPETAS DISPONIBLES Y SU USO:\n- Inbox: notas rapidas sin clasificar\n- Proyectos: cosas con principio y fin\n- Diario: entradas diarias personales\n- Contactos: informacion de personas\n- Finanzas: gastos, ingresos, presupuestos\n- Aprendizaje: libros, cursos, recursos personales\n- Sistema_Otto: configuracion y memoria de Otto\n\nREGLAS PRINCIPALES:\n- Si el usuario CONSULTA o PREGUNTA por sus notas → is_note: false, action: none, responde en formato lista\n- Si el usuario comparte una IDEA NUEVA o algo a GUARDAR → is_note: true, action: create\n- Si el usuario DESARROLLA o AMPLIA una idea existente → is_note: true, action: edit\n- Si el usuario quiere BORRAR una nota → is_note: true, action: delete\n- Si es CONVERSACION NORMAL → is_note: false, action: none\n- Si el usuario pregunta algo que no esta en sus notas → responde que no tienes esa informacion. Nunca inventes informacion.\n- Cuando action sea delete, title SIEMPRE debe ser el nombre exacto de la nota\n- Si action es \"read\" → lee el contenido de \"Contexto relevante\" y respondelo completo al usuario, is_note: false, action: none\n- Si el usuario pregunta la hora → responde con la hora actual en formato legible, ejemplo: \"Son las 13:43\". Usa {{ $now }} para obtenerla\n- Si el usuario pregunta la fecha → responde en formato legible, ejemplo: \"Hoy es domingo 11 de mayo de 2026\"\n\nREGLAS DE CONTENIDO:\n- El body debe estar bien redactado en markdown, NUNCA copies literalmente el mensaje\n- Cuando edites, integra la nueva informacion de forma natural en el contenido existente\n- Usa siempre segunda persona. Ejemplo: \"tu padre\" en vez de \"mi padre\"\n\nENLACES:\n- Solo añade [[enlace]] cuando la relacion sea completamente obvia y directa\n- Si mencionas a una persona que existe en allTitles, enlazala con [[nombre]]\n- En caso de duda, no enlaces\n\nFORMATO LISTAS:\n- Solo titulos, sin descripcion\nEjemplo:\nTus notas:\n- Nota 1\n- Nota 2\n\nNOTIFICACIONES OBLIGATORIAS:\n- Al CREAR: \"Nota {titulo} creada en {carpeta}.\\n{contenido}\"\n- Al EDITAR: \"Nota {titulo} editada.\\nSe añadio: {contenido}\"\n- Al BORRAR: \"Nota {titulo} eliminada\"\n- Sin texto adicional cuando is_note es true\n\nFORMATO GENERAL:\n- Usa mayusculas correctamente\n- Escribe de forma natural y cercana\n- No uses signos de exclamacion ni caracteres especiales\n- No uses acentos en las claves del JSON\n- Cuando action es \"none\" y es conversacion normal, responde de forma amigable y cercana como un amigo, no como un asistente formal\n- Evita frases como \"no parece que hayas compartido algo\", responde de forma natural como lo haria una persona\n\nResponde SOLO con este JSON exacto:\n{\n  \"title\": \"titulo exacto o null\",\n  \"body\": \"contenido en markdown o null\",\n  \"tags\": [\"etiqueta1\"],\n  \"folder\": \"nombre carpeta\",\n  \"is_note\": true o false,\n  \"action\": \"create o edit o delete o none\",\n  \"reply\": \"respuesta natural con listas usando -\"\n}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        640,
+        -320
+      ],
+      "id": "55471e05-02e5-4719-8eef-1e3c69bb05b4",
+      "name": "AI Agent 2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst historialPath = '/home/node/.n8n/obsidian/.historial.json';\n\nlet historial = [];\ntry {\n  historial = JSON.parse(fs.readFileSync(historialPath, 'utf8'));\n} catch(e) {\n  historial = [];\n}\n\nconst historialTexto = historial.length > 0\n  ? historial.slice(-20).map(m => `${m.rol}: ${m.texto}`).join('\\n')\n  : 'Sin historial previo.';\n\nconst input = $input.first().json;\n\nreturn [{\n  json: {\n    ...input,\n    historial: historialTexto,\n    isAudio: input.isAudio || false,\n    message: input.message || $('Telegram Trigger').item.json.message,\n    userMessage: input.userMessage || ''\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        -320
+      ],
+      "id": "3a5abf3c-05b4-480b-aa8d-043b2b47cfae",
+      "name": "Code Lee Historial"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst path = require('path');\nconst item = $input.first().json;\nconst vaultPath = '/home/node/.n8n/obsidian';\nconst historialPath = '/home/node/.n8n/obsidian/.historial.json';\n\nconst folder = item.folder || 'Inbox';\nconst title = item.title || 'Nota sin titulo';\nconst body = item.body || '';\nconst action = item.action || 'create';\n\nconst notePath = path.join(vaultPath, folder, `${title}.md`);\nconst indexPath = path.join(vaultPath, folder, `${folder} Index.md`);\n\nfunction updateIndex(indexFile, noteTitle, add) {\n  let content = '';\n  try {\n    content = fs.readFileSync(indexFile, 'utf8');\n  } catch(e) {\n    content = `# ${folder} Index\\n`;\n  }\n  const link = `- [[${noteTitle}]]`;\n  if (add && !content.includes(link)) {\n    content = content.trimEnd() + `\\n${link}`;\n  } else if (!add) {\n    content = content.split('\\n').filter(l => l !== link).join('\\n');\n  }\n  fs.writeFileSync(indexFile, content);\n}\n\nfunction removeLinksFromVault(noteTitle) {\n  const allFolders = ['Inbox', 'Proyectos', 'Diario', 'Contactos', 'Finanzas', 'Aprendizaje', 'Sistema_Otto'];\n  const linkPattern = new RegExp(`\\\\[\\\\[${noteTitle}\\\\]\\\\]`, 'g');\n  for (const f of allFolders) {\n    try {\n      const files = fs.readdirSync(path.join(vaultPath, f));\n      for (const file of files) {\n        if (file.endsWith('.md')) {\n          const filePath = path.join(vaultPath, f, file);\n          let content = fs.readFileSync(filePath, 'utf8');\n          if (linkPattern.test(content)) {\n            content = content.replace(linkPattern, noteTitle);\n            fs.writeFileSync(filePath, content);\n          }\n        }\n      }\n    } catch(e) {}\n  }\n}\n\nif (action === 'create' || action === 'edit') {\n  const dir = path.join(vaultPath, folder);\n  if (!fs.existsSync(dir)) {\n    fs.mkdirSync(dir, { recursive: true });\n  }\n  fs.writeFileSync(notePath, body);\n  if (action === 'create') {\n    updateIndex(indexPath, title, true);\n  }\n\n} else if (action === 'delete') {\n  try {\n    // Buscar la nota en todas las carpetas\n    const allFolders = ['Inbox', 'Proyectos', 'Diario', 'Contactos', 'Finanzas', 'Aprendizaje', 'Sistema_Otto'];\n    let deleted = false;\n    for (const f of allFolders) {\n      const fp = path.join(vaultPath, f, `${title}.md`);\n      if (fs.existsSync(fp)) {\n        fs.unlinkSync(fp);\n        const idx = path.join(vaultPath, f, `${f} Index.md`);\n        updateIndex(idx, title, false);\n        deleted = true;\n        break;\n      }\n    }\n    if (deleted) {\n      removeLinksFromVault(title);\n    }\n  } catch(e) {}\n}\n\n// Guardar historial global\nlet historial = [];\ntry {\n  historial = JSON.parse(fs.readFileSync(historialPath, 'utf8'));\n} catch(e) {\n  historial = [];\n}\n\nhistorial.push({ rol: 'usuario', texto: item.message?.text || '' });\nhistorial.push({ rol: 'otto', texto: item.reply || '' });\n\nfs.writeFileSync(historialPath, JSON.stringify(historial.slice(-30)));\n\nreturn [{ json: item }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1376,
+        -496
+      ],
+      "id": "068a9ec4-5bc5-452a-81bb-2e9bfd0bb483",
+      "name": "Code Escribe Historial True"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst historialPath = '/home/node/.n8n/obsidian/.historial.json';\n\nlet historial = [];\ntry {\n  historial = JSON.parse(fs.readFileSync(historialPath, 'utf8'));\n} catch(e) {\n  historial = [];\n}\n\n// Los datos vienen del nodo Telegram, buscar en el nodo anterior\nconst item = $('Code parsear JSON').item.json;\nconst userText = item.message?.text || '';\nconst ottoText = item.reply || '';\n\nhistorial.push({ rol: 'usuario', texto: userText });\nhistorial.push({ rol: 'otto', texto: ottoText });\n\nfs.writeFileSync(historialPath, JSON.stringify(historial.slice(-30)));\n\nreturn [{ json: { ok: true, userText, ottoText } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2064,
+        -96
+      ],
+      "id": "cdf464d3-26e0-4cee-b6b6-d439f5d03004",
+      "name": "Code Escribe Historial False"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 3
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -864,
+        -464
+      ],
+      "id": "e26f0534-4e0a-47b4-8812-97f0340533d9",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst path = require('path');\n\nconst historialPath = '/home/node/.n8n/obsidian/.historial.json';\nconst historialesDir = '/home/node/.n8n/obsidian/Historiales';\n\ntry {\n  // Leer historial actual\n  const historial = JSON.parse(fs.readFileSync(historialPath, 'utf8'));\n  \n  if (historial.length > 0) {\n    // Guardar con fecha de hoy\n    const fecha = new Date().toISOString().split('T')[0];\n    fs.writeFileSync(\n      path.join(historialesDir, `${fecha}.json`),\n      JSON.stringify(historial)\n    );\n    \n    // Limpiar historial actual\n    fs.writeFileSync(historialPath, JSON.stringify([]));\n  }\n} catch(e) {}\n\nreturn [{ json: { ok: true } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        -464
+      ],
+      "id": "d33effc9-0d6a-44ca-bae5-24b9beec6228",
+      "name": "Code Refresh Historial"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst path = require('path');\nconst vaultPath = '/home/node/.n8n/obsidian';\nconst allFolders = ['Inbox', 'Proyectos', 'Diario', 'Contactos', 'Finanzas', 'Aprendizaje', 'Sistema_Otto'];\nlet allTitles = [];\n\nfor (const folder of allFolders) {\n  try {\n    const files = fs.readdirSync(path.join(vaultPath, folder));\n    for (const file of files) {\n      if (file.endsWith('.md') && !file.includes('Index')) {\n        allTitles.push(`[${folder}] ${file.replace('.md', '')}`);\n      }\n    }\n  } catch(e) {}\n}\n\nconst input = $input.first().json;\n\nreturn [{\n  json: {\n    ...input,\n    allTitles: allTitles.join('\\n'),\n    isAudio: input.isAudio || false\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -384,
+        -320
+      ],
+      "id": "9f32063d-58ce-48b3-a03a-8e8692961191",
+      "name": "Code Titulos"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "63397d25-2e11-4e68-b23d-ea9ac6305338"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Texto"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "b8be5159-8cad-40b2-a084-92b338c457bf",
+                    "leftValue": "={{ $json.message.voice.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Audio"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -640,
+        -304
+      ],
+      "id": "436f264c-51dd-46e9-b54c-4aeae42fe5f2",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -576,
+        144
+      ],
+      "id": "2445d56b-309a-4b3a-b409-19dbc0a59d35",
+      "name": "Get a file",
+      "webhookId": "3dba51a7-e25c-46e6-99a9-7c12c7b63dc2",
+      "credentials": {
+        "telegramApi": {
+          "id": "udmiKd0N1Bb6kafA",
+          "name": "OttoAPI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/file/botTU-TOKEN/{{ $json.result.file_path }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -256,
+        144
+      ],
+      "id": "72efd309-0c1b-46e5-9187-03ce74216ee9",
+      "name": "HTTP Request Descargar Audio"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/audio/transcriptions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "whisper-large-v3"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "=data"
+            },
+            {
+              "name": "response_format",
+              "value": "json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        144
+      ],
+      "id": "792b50bb-2fa3-4c0b-bab8-2271e4f7a3f6",
+      "name": "HTTP Request Groq Whisper",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "WeNGwsw0VePyJxha",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const transcription = $input.first().json.text;\nconst telegramData = $('Telegram Trigger').item.json;\n\nreturn [{\n  json: {\n    ...telegramData,\n    message: {\n      ...telegramData.message,\n      text: transcription\n    },\n    isAudio: true\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        144
+      ],
+      "id": "9c6b5b7f-68ca-4a4f-9ae2-f4541b0c8f09",
+      "name": "Code Extraer Texto"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3515c6ce-2e1e-45a4-94db-8df72906d20f",
+              "leftValue": "={{ $json.is_note }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1216,
+        -320
+      ],
+      "id": "682b305e-1161-4e2c-b41f-d62a1397fbfb",
+      "name": "If is_note"
+    },
+    {
+      "parameters": {
+        "operation": "sendAudio",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2048,
+        -592
+      ],
+      "id": "c29c01ef-38ad-425d-a390-23f362c0c7cd",
+      "name": "Send an audio file",
+      "webhookId": "7b334262-95fe-43c6-bd3e-f497bd97c388",
+      "credentials": {
+        "telegramApi": {
+          "id": "udmiKd0N1Bb6kafA",
+          "name": "OttoAPI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "112d9451-9edb-4336-91d4-479a12570743",
+              "leftValue": "={{ $json.isAudio }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1376,
+        -112
+      ],
+      "id": "aec84d81-1fc7-45bb-ba60-a0ea5c159443",
+      "name": "If isAudio"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7504a0cb-9053-48eb-98da-aee7666f9b7d",
+              "leftValue": "={{ $json.isAudio }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1600,
+        -496
+      ],
+      "id": "d5f60300-3099-4cc0-95f5-57278a348768",
+      "name": "If isAudio1"
+    },
+    {
+      "parameters": {
+        "operation": "sendAudio",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1824,
+        -208
+      ],
+      "id": "f774f88b-a948-4f77-a3e7-20ef65b5f18f",
+      "name": "Send an audio file1",
+      "webhookId": "1a0f6dad-6abe-478d-99f5-a458c7abcdcd",
+      "credentials": {
+        "telegramApi": {
+          "id": "udmiKd0N1Bb6kafA",
+          "name": "OttoAPI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Añadir token del tu bot\nDonde ponga TU-TOKEN sustituyes y pegas.\nEj. botAsdau3523u",
+        "height": 272,
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        32
+      ],
+      "id": "3ec1aa10-952a-45e7-b49e-47ef8b3725e2",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\n\nreturn [{\n  json: item.json,\n  binary: {\n    data: {\n      ...item.binary.data,\n      mimeType: 'audio/ogg',\n      fileName: 'audio.ogg'\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        144
+      ],
+      "id": "f049a68d-626e-4eff-acbd-fa5409ab084c",
+      "name": "Code fomateo audio"
+    },
+    {
+      "parameters": {
+        "url": "=https://translate.google.com/translate_tts?ie=UTF-8&q={{ encodeURIComponent($json.reply) }}&tl=es&client=tw-ob",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1600,
+        -208
+      ],
+      "id": "38e45718-6265-442f-82ac-edf121be358b",
+      "name": "HTTP Respuesta a Audio"
+    },
+    {
+      "parameters": {
+        "url": "=https://translate.google.com/translate_tts?ie=UTF-8&q={{ encodeURIComponent($json.reply) }}&tl=es&client=tw-ob",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1824,
+        -592
+      ],
+      "id": "c8813ef7-b096-4317-9eee-fa38e3d30b3d",
+      "name": "HTTP Respuesta a Audio 1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent 2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent 1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent 1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent 1": {
+      "main": [
+        [
+          {
+            "node": "Code Lectura Carpetas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Lectura Carpetas": {
+      "main": [
+        [
+          {
+            "node": "Code Lee Historial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code parsear JSON": {
+      "main": [
+        [
+          {
+            "node": "If is_note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent 2": {
+      "main": [
+        [
+          {
+            "node": "Code parsear JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message1": {
+      "main": [
+        [
+          {
+            "node": "Code Escribe Historial False",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Lee Historial": {
+      "main": [
+        [
+          {
+            "node": "AI Agent 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Escribe Historial True": {
+      "main": [
+        [
+          {
+            "node": "If isAudio1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code Refresh Historial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Titulos": {
+      "main": [
+        [
+          {
+            "node": "AI Agent 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Code Titulos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Descargar Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Groq Whisper": {
+      "main": [
+        [
+          {
+            "node": "Code Extraer Texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Descargar Audio": {
+      "main": [
+        [
+          {
+            "node": "Code fomateo audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Extraer Texto": {
+      "main": [
+        [
+          {
+            "node": "Code Titulos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If is_note": {
+      "main": [
+        [
+          {
+            "node": "Code Escribe Historial True",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If isAudio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If isAudio1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Respuesta a Audio 1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If isAudio": {
+      "main": [
+        [
+          {
+            "node": "HTTP Respuesta a Audio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an audio file1": {
+      "main": [
+        [
+          {
+            "node": "Code Escribe Historial False",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code fomateo audio": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Groq Whisper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Respuesta a Audio": {
+      "main": [
+        [
+          {
+            "node": "Send an audio file1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Respuesta a Audio 1": {
+      "main": [
+        [
+          {
+            "node": "Send an audio file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "6a048011-140e-4f26-901e-de881a6b3320",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "69e1b60cfd196887511c92c3a546fedba1dea3cc589532d985e8f7c2a2cebc35"
+  },
+  "id": "r2CKowdBREVzRZlX",
+  "tags": [
+    {
+      "updatedAt": "2026-05-06T09:03:36.541Z",
+      "createdAt": "2026-05-06T09:03:36.541Z",
+      "id": "13MYvTiyPwS2yQJK",
+      "name": "Otto Version"
+    }
+  ]
+}
